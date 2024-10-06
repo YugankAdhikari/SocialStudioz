@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronDown, Send, Instagram, Twitter, Linkedin, Sun, Moon } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown, Send, Instagram, Twitter, Linkedin, Sun, Moon, Menu, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,30 +10,31 @@ import { Textarea } from "@/components/ui/textarea"
 export default function Component() {
   const [scrollY, setScrollY] = useState(0)
   const [activeSection, setActiveSection] = useState('')
-  const [isDarkMode, setIsDarkMode] = useState(true)  // Set dark mode as default
+  const [isDarkMode, setIsDarkMode] = useState(true)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  const homeRef = useRef(null)
-  const aboutRef = useRef(null)
-  const servicesRef = useRef(null)
-  const portfolioRef = useRef(null)
-  const testimonialsRef = useRef(null)
-  const contactRef = useRef(null)
+  const homeRef = useRef<HTMLElement>(null)
+  const aboutRef = useRef<HTMLElement>(null)
+  const servicesRef = useRef<HTMLElement>(null)
+  const portfolioRef = useRef<HTMLElement>(null)
+  const testimonialsRef = useRef<HTMLElement>(null)
+  const contactRef = useRef<HTMLElement>(null)
 
-  const sectionRefs = {
+  const sectionRefs = useMemo(() => ({
     home: homeRef,
     about: aboutRef,
     services: servicesRef,
     portfolio: portfolioRef,
     testimonials: testimonialsRef,
     contact: contactRef,
-  }
+  }), [])
 
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY)
       
-      const currentPosition = window.scrollY + 100 // Offset for better accuracy
+      const currentPosition = window.scrollY + 100
 
       Object.entries(sectionRefs).forEach(([key, ref]) => {
         if (ref.current && ref.current.offsetTop <= currentPosition && 
@@ -43,7 +44,7 @@ export default function Component() {
       })
     }
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
 
@@ -54,25 +55,28 @@ export default function Component() {
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("mousemove", handleMouseMove)
     }
-  }, [])
+  }, [sectionRefs])
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = (sectionId: keyof typeof sectionRefs) => {
     const section = sectionRefs[sectionId].current
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' })
     }
+    setIsMenuOpen(false)
   }
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)
   }
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-black via-black to-blue-900' : 'bg-gradient-to-br from-blue-100 via-blue-200 to-white'} ${isDarkMode ? 'text-white' : 'text-gray-800'} transition-colors duration-300 relative overflow-hidden`}>
-      {/* Dark overlay */}
       <div className={`fixed inset-0 z-10 pointer-events-none ${isDarkMode ? 'bg-black opacity-40' : 'bg-black opacity-20'}`} />
       
-      {/* Cursor light effect */}
       <div
         className="pointer-events-none fixed inset-0 z-20 transition-opacity duration-300"
         style={{
@@ -80,7 +84,6 @@ export default function Component() {
         }}
       />
       
-      {/* Cursor illumination effect */}
       <div
         className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
         style={{
@@ -99,31 +102,62 @@ export default function Component() {
             >
               Social Studios
             </motion.div>
-            <motion.ul
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, staggerChildren: 0.1 }}
-              className="flex items-center space-x-6"
-            >
+            <div className="hidden md:flex items-center space-x-6">
               {['home', 'about', 'services', 'portfolio', 'testimonials', 'contact'].map((item) => (
-                <motion.li key={item} whileHover={{ scale: 1.1 }}>
-                  <button
-                    onClick={() => scrollToSection(item)}
-                    className={`hover:text-blue-500 transition-colors ${activeSection === item ? 'text-blue-500' : ''}`}
-                  >
-                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                  </button>
-                </motion.li>
+                <motion.button
+                  key={item}
+                  onClick={() => scrollToSection(item as keyof typeof sectionRefs)}
+                  className={`hover:text-blue-500 transition-colors ${activeSection === item ? 'text-blue-500' : ''}`}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </motion.button>
               ))}
-              <motion.li whileHover={{ scale: 1.1 }}>
-                <button onClick={toggleTheme} className="p-2 rounded-full bg-gray-200 dark:bg-gray-800">
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button>
-              </motion.li>
-            </motion.ul>
+              <motion.button
+                onClick={toggleTheme}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-800"
+                whileHover={{ scale: 1.1 }}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </motion.button>
+            </div>
+            <button onClick={toggleMenu} className="md:hidden">
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
         </nav>
       </header>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'tween' }}
+            className={`fixed inset-y-0 right-0 z-50 w-64 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} p-6 shadow-lg`}
+          >
+            <div className="flex flex-col space-y-4">
+              {['home', 'about', 'services', 'portfolio', 'testimonials', 'contact'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item as keyof typeof sectionRefs)}
+                  className={`text-left hover:text-blue-500 transition-colors ${activeSection === item ? 'text-blue-500' : ''}`}
+                >
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </button>
+              ))}
+              <button
+                onClick={toggleTheme}
+                className="flex items-center space-x-2"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="relative z-40">
         <section ref={homeRef} id="home" className={`min-h-screen flex items-center justify-center relative overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-black via-black to-blue-900' : 'bg-gradient-to-br from-blue-100 via-blue-200 to-white'}`}>
@@ -131,10 +165,10 @@ export default function Component() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center z-10"
+            className="text-center z-10 px-4"
           >
-            <h1 className="text-6xl font-bold mb-4">Welcome to Social Studios</h1>
-            <p className="text-xl mb-8">Crafting Digital Experiences That Inspire</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to Social Studios</h1>
+            <p className="text-lg md:text-xl mb-8">Crafting Digital Experiences That Inspire</p>
             <Button size="lg" className={`${isDarkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
               Get Started
             </Button>
@@ -172,7 +206,7 @@ export default function Component() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold mb-8 text-center"
+              className="text-3xl md:text-4xl font-bold mb-8 text-center"
             >
               About Us
             </motion.h2>
@@ -180,9 +214,9 @@ export default function Component() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-center max-w-2xl mx-auto"
+              className="text-base md:text-lg text-center max-w-2xl mx-auto"
             >
-              Social Studios is a cutting-edge digital agency specializing in creating immersive social media experiences. Our team of creative minds and tech wizards work together to bring your brand's vision to life in the digital realm.
+              Social Studios is a cutting-edge digital agency specializing in creating immersive social media experiences. Our team of creative minds and tech wizards work together to bring your brand&apos;s vision to life in the digital realm.
             </motion.p>
           </div>
         </section>
@@ -191,13 +225,13 @@ export default function Component() {
           <div className="container mx-auto px-6">
             <motion.h2
               initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity : 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold mb-12 text-center"
+              className="text-3xl md:text-4xl font-bold mb-12 text-center"
             >
               Our Services
             </motion.h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 { title: 'Social Media Management', icon: '🚀' },
                 { title: 'Content Creation', icon: '🎨' },
@@ -228,7 +262,7 @@ export default function Component() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold mb-12 text-center"
+              className="text-3xl md:text-4xl font-bold mb-12 text-center"
             >
               Our Portfolio
             </motion.h2>
@@ -259,7 +293,7 @@ export default function Component() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold mb-12 text-center"
+              className="text-3xl md:text-4xl font-bold mb-12 text-center"
             >
               What Our Clients Say
             </motion.h2>
@@ -274,9 +308,9 @@ export default function Component() {
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`${isDarkMode ? 'bg-blue-900 bg-opacity-20' : 'bg-white'} p-6 rounded-lg backdrop-blur-sm `}
+                  className={`${isDarkMode ? 'bg-blue-900 bg-opacity-20' : 'bg-white'} p-6 rounded-lg backdrop-blur-sm`}
                 >
-                  <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4>"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."</p>
+                  <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4>&quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.&quot;</p>
                   <div className="font-semibold">{testimonial.name}</div>
                   <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{testimonial.role}</div>
                 </motion.div>
@@ -291,7 +325,7 @@ export default function Component() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold mb-12 text-center"
+              className="text-3xl md:text-4xl font-bold mb-12 text-center"
             >
               Get In Touch
             </motion.h2>
@@ -327,10 +361,37 @@ export default function Component() {
             </div>
           </div>
           <div className={`mt-8 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            &copy; {new Date().getFullYear()} Social Studios. All rights reserved.
+            © {new Date().getFullYear()} Social Studios. All rights reserved.
           </div>
         </div>
       </footer>
+
+      <div className={`fixed bottom-0 left-0 right-0 py-2 ${isDarkMode ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-100'} z-50 overflow-hidden`}>
+        <div className="marquee-content whitespace-nowrap">
+          <span className="mx-4">Follow us on this site to stay updated!</span>
+          <span className="mx-4">Exciting new features coming soon!</span>
+          <span className="mx-4">Join our community for exclusive content!</span>
+          <span className="mx-4">Follow us on Instagram for more updates!</span>
+          <span className="mx-4">Connect with us on LinkedIn!</span>
+          <span className="mx-4">Subscribe to our newsletter!</span>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+        .marquee-content {
+          display: inline-block;
+          white-space: nowrap;
+          animation: marquee 20s linear infinite;
+        }
+      `}</style>
     </div>
   )
 }
