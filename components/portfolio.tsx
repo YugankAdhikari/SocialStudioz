@@ -296,7 +296,7 @@ export default function Portfolio() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-base md:text-lg text-center max-w-2xl mx-auto"
             >
-              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social media campaigns, and produces high-quality video content to tell your brand's story. We're committed to helping you connect with your audience and achieve digital success.
+              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social media campaigns, and produces high-quality video content to tell your brand&apos;s story. We&apos;re committed to helping you connect with your audience and achieve digital success.
             </motion.p>
           </div>
         </section>
@@ -404,7 +404,7 @@ export default function Portfolio() {
                   onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(testimonial.name)}
                 >
-                  <p className="mb-4">"{testimonial.content}"</p>
+                  <p className="mb-4">&quot;{testimonial.content}&quot;</p>
                   <div className="font-semibold">{testimonial.name}</div>
                 </motion.div>
               ))}

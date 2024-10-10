@@ -17,6 +17,7 @@ export function PortfolioComponent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [clickedCard, setClickedCard] = useState<string | null>(null)
 
   const homeRef = useRef<HTMLElement>(null)
   const aboutRef = useRef<HTMLElement>(null)
@@ -87,10 +88,10 @@ export function PortfolioComponent() {
 
     try {
       await emailjs.sendForm(
-        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-        formRef.current!,
-        'YOUR_USER_ID' // Replace with your EmailJS user ID
+        'YOUR_SERVICE_ID',
+        'YOUR_TEMPLATE_ID',
+        e.currentTarget,
+        'YOUR_USER_ID'
       )
       setSubmitStatus('success')
       if (formRef.current) formRef.current.reset()
@@ -104,18 +105,39 @@ export function PortfolioComponent() {
 
   const getCardStyle = (cardId: string) => {
     const isHovered = hoveredCard === cardId
+    const isClicked = clickedCard === cardId
     
-    if (isHovered) {
+    if (isDarkMode) {
+      if (isHovered || isClicked) {
+        return {
+          background: 'linear-gradient(135deg, #4B0082, #000000)',
+          color: 'white',
+          transition: 'all 0.3s ease-in-out',
+        }
+      }
       return {
-        background: 'linear-gradient(135deg, #4B0082, #000000)',
-        color: 'white',
+        background: 'rgba(30, 58, 138, 0.2)',
         transition: 'all 0.3s ease-in-out',
       }
-    }
-    
-    return {
-      background: isDarkMode ? 'rgba(30, 58, 138, 0.2)' : 'white',
-      transition: 'all 0.3s ease-in-out',
+    } else {
+      if (isHovered) {
+        return {
+          background: 'linear-gradient(135deg, #3B82F6, #93C5FD)',
+          color: 'white',
+          transition: 'all 0.3s ease-in-out',
+        }
+      }
+      if (isClicked) {
+        return {
+          background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
+          color: 'white',
+          transition: 'all 0.3s ease-in-out',
+        }
+      }
+      return {
+        background: 'white',
+        transition: 'all 0.3s ease-in-out',
+      }
     }
   }
 
@@ -203,7 +225,6 @@ export function PortfolioComponent() {
         )}
       </AnimatePresence>
 
-      {/* Dark/Light mode toggle for mobile */}
       <div className="md:hidden fixed bottom-20 right-4 z-50">
         <motion.button
           onClick={toggleTheme}
@@ -274,7 +295,7 @@ export function PortfolioComponent() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-base md:text-lg text-center max-w-2xl mx-auto"
             >
-              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social media campaigns, and produces high-quality video content to tell your brand's story. We're committed to helping you connect with your audience and achieve digital success.
+              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social media campaigns, and produces high-quality video content to tell your brand&apos;s story. We&apos;re committed to helping you connect with your audience and achieve digital success.
             </motion.p>
           </div>
         </section>
@@ -283,7 +304,7 @@ export function PortfolioComponent() {
           <div className="container mx-auto px-6">
             <motion.h2
               initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity:  1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="text-3xl md:text-4xl font-bold mb-12 text-center"
             >
@@ -291,9 +312,9 @@ export function PortfolioComponent() {
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { title: "Website Development", icon: Globe, description: "We create custom, user-friendly websites tailored to your startup's needs. Our designs not only reflect your brand identity but also ensure optimal functionality and performance to enhance user experience." },
-                { title: "Social Media Management", icon: Share2, description: "Our team crafts engaging social media strategies that connect your brand with the right audience. We focus  on content creation, scheduling, and community engagement to build a loyal following." },
-                { title: "Video Editing", icon: Video, description: "We produce high-quality videos that tell your brand's story effectively. From promotional clips to explainer videos, our editing services enhance your visual content, making it more compelling and shareable." }
+                { title: "Website Development", icon: Globe, description: "We create custom, user-friendly websites tailored to your startup&apos;s needs. Our designs not only reflect your brand identity but also ensure optimal functionality and performance to enhance user experience." },
+                { title: "Social Media Management", icon: Share2, description: "Our team crafts engaging social media strategies that connect your brand with the right audience. We focus on content creation, scheduling, and community engagement to build a loyal following." },
+                { title: "Video Editing", icon: Video, description: "We produce high-quality videos that tell your brand&apos;s story effectively. From promotional clips to explainer videos, our editing services enhance your visual content, making it more compelling and shareable." }
               ].map((service, index) => (
                 <motion.div
                   key={service.title}
@@ -303,6 +324,8 @@ export function PortfolioComponent() {
                   className="p-6 rounded-lg backdrop-blur-sm transition-all cursor-pointer"
                   onMouseEnter={() => setHoveredCard(service.title)}
                   onMouseLeave={() => setHoveredCard(null)}
+                  onMouseDown={() => setClickedCard(service.title)}
+                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(service.title)}
                 >
                   <service.icon className="w-12 h-12 mb-4 text-blue-500" />
@@ -336,6 +359,8 @@ export function PortfolioComponent() {
                   className="relative overflow-hidden rounded-lg aspect-video cursor-pointer"
                   onMouseEnter={() => setHoveredCard(`project-${item}`)}
                   onMouseLeave={() => setHoveredCard(null)}
+                  onMouseDown={() => setClickedCard(`project-${item}`)}
+                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(`project-${item}`)}
                 >
                   <div className="w-full h-full flex items-center justify-center">
@@ -362,7 +387,7 @@ export function PortfolioComponent() {
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { name: "Sarah Thompson", content: "Social Studioz transformed our startup's online presence! Their team delivered a stunning website that truly reflects our brand. The social media management strategies they implemented have significantly boosted our engagement. Highly recommend!" },
+                { name: "Sarah Thompson", content: "Social Studioz transformed our startup&apos;s online presence! Their team delivered a stunning website that truly reflects our brand. The social media management strategies they implemented have significantly boosted our engagement. Highly recommend!" },
                 { name: "Michael Johnson", content: "I was impressed with the video editing services from Social Studioz. They took our raw footage and turned it into a professional promotional video that perfectly captures our vision. Their attention to detail is unmatched!" },
                 { name: "Emma Carter", content: "The comprehensive package from Social Studioz exceeded our expectations! The custom website, combined with effective social media strategies, helped us reach our target audience more effectively. Their support throughout the process was invaluable." }
               ].map((testimonial, index) => (
@@ -374,9 +399,11 @@ export function PortfolioComponent() {
                   className="p-6 rounded-lg backdrop-blur-sm cursor-pointer"
                   onMouseEnter={() => setHoveredCard(testimonial.name)}
                   onMouseLeave={() => setHoveredCard(null)}
+                  onMouseDown={() => setClickedCard(testimonial.name)}
+                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(testimonial.name)}
                 >
-                  <p className="mb-4">"{testimonial.content}"</p>
+                  <p className="mb-4">&quot;{testimonial.content}&quot;</p>
                   <div className="font-semibold">{testimonial.name}</div>
                 </motion.div>
               ))}
@@ -408,6 +435,8 @@ export function PortfolioComponent() {
                   className="p-6 rounded-lg backdrop-blur-sm transition-all cursor-pointer"
                   onMouseEnter={() => setHoveredCard(plan.name)}
                   onMouseLeave={() => setHoveredCard(null)}
+                  onMouseDown={() => setClickedCard(plan.name)}
+                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(plan.name)}
                 >
                   <h3 className="text-2xl font-semibold mb-4">{plan.name} Package</h3>
@@ -500,7 +529,6 @@ export function PortfolioComponent() {
         </div>
       </footer>
 
-      {/* Marquee effect */}
       <div className={`fixed bottom-0 left-0 right-0 py-2 ${isDarkMode ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-100'} z-40 overflow-hidden`}>
         <div className="marquee-content whitespace-nowrap">
           <span className="mx-4">Follow us on this site to stay updated!</span>
