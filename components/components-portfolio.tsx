@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import emailjs from '@emailjs/browser'
 
-export default function Portfolio() {
+export function PortfolioComponent() {
   const [scrollY, setScrollY] = useState(0)
   const [activeSection, setActiveSection] = useState('')
   const [isDarkMode, setIsDarkMode] = useState(true)
@@ -17,7 +17,6 @@ export default function Portfolio() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  const [clickedCard, setClickedCard] = useState<string | null>(null)
 
   const homeRef = useRef<HTMLElement>(null)
   const aboutRef = useRef<HTMLElement>(null)
@@ -88,9 +87,9 @@ export default function Portfolio() {
 
     try {
       await emailjs.sendForm(
-        'service_q9nkgnp', // Replace with your EmailJS service ID
+        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
         'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-        e.currentTarget,
+        formRef.current!,
         'YOUR_USER_ID' // Replace with your EmailJS user ID
       )
       setSubmitStatus('success')
@@ -105,39 +104,18 @@ export default function Portfolio() {
 
   const getCardStyle = (cardId: string) => {
     const isHovered = hoveredCard === cardId
-    const isClicked = clickedCard === cardId
     
-    if (isDarkMode) {
-      if (isHovered || isClicked) {
-        return {
-          background: 'linear-gradient(135deg, #4B0082, #000000)',
-          color: 'white',
-          transition: 'all 0.3s ease-in-out',
-        }
-      }
+    if (isHovered) {
       return {
-        background: 'rgba(30, 58, 138, 0.2)',
+        background: 'linear-gradient(135deg, #4B0082, #000000)',
+        color: 'white',
         transition: 'all 0.3s ease-in-out',
       }
-    } else {
-      if (isHovered) {
-        return {
-          background: 'linear-gradient(135deg, #3B82F6, #93C5FD)',
-          color: 'white',
-          transition: 'all 0.3s ease-in-out',
-        }
-      }
-      if (isClicked) {
-        return {
-          background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
-          color: 'white',
-          transition: 'all 0.3s ease-in-out',
-        }
-      }
-      return {
-        background: 'white',
-        transition: 'all 0.3s ease-in-out',
-      }
+    }
+    
+    return {
+      background: isDarkMode ? 'rgba(30, 58, 138, 0.2)' : 'white',
+      transition: 'all 0.3s ease-in-out',
     }
   }
 
@@ -301,7 +279,7 @@ export default function Portfolio() {
           </div>
         </section>
 
-        <section ref={servicesRef} id="services"   className="py-20">
+        <section ref={servicesRef} id="services" className="py-20">
           <div className="container mx-auto px-6">
             <motion.h2
               initial={{ opacity: 0, y: 50 }}
@@ -314,7 +292,7 @@ export default function Portfolio() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 { title: "Website Development", icon: Globe, description: "We create custom, user-friendly websites tailored to your startup's needs. Our designs not only reflect your brand identity but also ensure optimal functionality and performance to enhance user experience." },
-                { title: "Social Media Management", icon: Share2, description: "Our team crafts engaging social media strategies that connect your brand with the right audience. We focus on content creation, scheduling, and community engagement to build a loyal following." },
+                { title: "Social Media Management", icon: Share2, description: "Our team crafts engaging social media strategies that connect your brand with the right audience. We focus  on content creation, scheduling, and community engagement to build a loyal following." },
                 { title: "Video Editing", icon: Video, description: "We produce high-quality videos that tell your brand's story effectively. From promotional clips to explainer videos, our editing services enhance your visual content, making it more compelling and shareable." }
               ].map((service, index) => (
                 <motion.div
@@ -325,8 +303,6 @@ export default function Portfolio() {
                   className="p-6 rounded-lg backdrop-blur-sm transition-all cursor-pointer"
                   onMouseEnter={() => setHoveredCard(service.title)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  onMouseDown={() => setClickedCard(service.title)}
-                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(service.title)}
                 >
                   <service.icon className="w-12 h-12 mb-4 text-blue-500" />
@@ -360,8 +336,6 @@ export default function Portfolio() {
                   className="relative overflow-hidden rounded-lg aspect-video cursor-pointer"
                   onMouseEnter={() => setHoveredCard(`project-${item}`)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  onMouseDown={() => setClickedCard(`project-${item}`)}
-                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(`project-${item}`)}
                 >
                   <div className="w-full h-full flex items-center justify-center">
@@ -400,8 +374,6 @@ export default function Portfolio() {
                   className="p-6 rounded-lg backdrop-blur-sm cursor-pointer"
                   onMouseEnter={() => setHoveredCard(testimonial.name)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  onMouseDown={() => setClickedCard(testimonial.name)}
-                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(testimonial.name)}
                 >
                   <p className="mb-4">"{testimonial.content}"</p>
@@ -436,8 +408,6 @@ export default function Portfolio() {
                   className="p-6 rounded-lg backdrop-blur-sm transition-all cursor-pointer"
                   onMouseEnter={() => setHoveredCard(plan.name)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  onMouseDown={() => setClickedCard(plan.name)}
-                  onMouseUp={() => setClickedCard(null)}
                   style={getCardStyle(plan.name)}
                 >
                   <h3 className="text-2xl font-semibold mb-4">{plan.name} Package</h3>
