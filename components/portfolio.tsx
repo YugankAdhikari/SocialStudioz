@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import emailjs from '@emailjs/browser'
 
+const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '';
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '';
+const EMAILJS_USER_ID = process.env.NEXT_PUBLIC_EMAILJS_USER_ID || '';
+
 export default function Portfolio() {
   const [scrollY, setScrollY] = useState(0)
   const [activeSection, setActiveSection] = useState('')
@@ -42,7 +46,7 @@ export default function Portfolio() {
     const handleScroll = () => {
       setScrollY(window.scrollY)
       
-      const currentPosition = window.scrollY + 100
+      const currentPosition = window.scrollY + window.innerHeight / 2
 
       Object.entries(sectionRefs).forEach(([key, ref]) => {
         if (ref.current && ref.current.offsetTop <= currentPosition && 
@@ -65,6 +69,18 @@ export default function Portfolio() {
     }
   }, [sectionRefs])
 
+  useEffect(() => {
+    if (EMAILJS_USER_ID) {
+      emailjs.init(EMAILJS_USER_ID);
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log('EMAILJS_SERVICE_ID:', EMAILJS_SERVICE_ID);
+    console.log('EMAILJS_TEMPLATE_ID:', EMAILJS_TEMPLATE_ID);
+    console.log('EMAILJS_USER_ID:', EMAILJS_USER_ID);
+  }, []);
+
   const scrollToSection = (sectionId: keyof typeof sectionRefs) => {
     const section = sectionRefs[sectionId].current
     if (section) {
@@ -82,26 +98,37 @@ export default function Portfolio() {
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus('idle')
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_USER_ID) {
+      console.error('EmailJS configuration is missing');
+      setSubmitStatus('error');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      await emailjs.sendForm(
-        'service_q9nkgnp', // Replace with your EmailJS service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+      const result = await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
         e.currentTarget,
-        'YOUR_USER_ID' // Replace with your EmailJS user ID
-      )
-      setSubmitStatus('success')
-      if (formRef.current) formRef.current.reset()
+        EMAILJS_USER_ID
+      );
+      console.log('EmailJS result:', result);
+      setSubmitStatus('success');
+      if (formRef.current) formRef.current.reset();
     } catch (error) {
-      console.error('Error sending email:', error)
-      setSubmitStatus('error')
+      console.error('Error sending email:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
+      setSubmitStatus('error');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const getCardStyle = (cardId: string) => {
     const isHovered = hoveredCard === cardId
@@ -225,7 +252,6 @@ export default function Portfolio() {
         )}
       </AnimatePresence>
 
-      {/* Dark/Light mode toggle for mobile */}
       <div className="md:hidden fixed bottom-20 right-4 z-50">
         <motion.button
           onClick={toggleTheme}
@@ -247,7 +273,11 @@ export default function Portfolio() {
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to Social Studioz</h1>
             <p className="text-lg md:text-xl mb-8">Empowering startups to thrive digitally</p>
-            <Button size="lg" className={`${isDarkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+            <Button 
+              size="lg" 
+              className={`${isDarkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              onClick={() => window.open("https://www.instagram.com/socialstudioz1/profilecard/?igsh=bDJlOHBpcmZ5bGs2", "_blank", "noopener,noreferrer")}
+            >
               Get Started
             </Button>
           </motion.div>
@@ -296,12 +326,12 @@ export default function Portfolio() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-base md:text-lg text-center max-w-2xl mx-auto"
             >
-              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social media campaigns, and produces high-quality video content to tell your brand&apos;s story. We&apos;re committed to helping you connect with your audience and achieve digital success.
+              At Social Studioz, we empower startups to thrive digitally through tailored solutions in website development, social media management, and video editing. Our dedicated team creates visually compelling websites, manages engaging social  media campaigns, and produces high-quality video content to tell your brand&apos;s story. We&apos;re committed to helping you connect with your audience and achieve digital success.
             </motion.p>
           </div>
         </section>
 
-        <section ref={servicesRef} id="services"   className="py-20">
+        <section ref={servicesRef} id="services" className="py-20">
           <div className="container mx-auto px-6">
             <motion.h2
               initial={{ opacity: 0, y: 50 }}
@@ -313,9 +343,9 @@ export default function Portfolio() {
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { title: "Website Development", icon: Globe, description: "We create custom, user-friendly websites tailored to your startup's needs. Our designs not only reflect your brand identity but also ensure optimal functionality and performance to enhance user experience." },
+                { title: "Website Development", icon: Globe, description: "We create custom, user-friendly websites tailored to your startup&apos;s needs. Our designs not only reflect your brand identity but also ensure optimal functionality and performance to enhance user experience." },
                 { title: "Social Media Management", icon: Share2, description: "Our team crafts engaging social media strategies that connect your brand with the right audience. We focus on content creation, scheduling, and community engagement to build a loyal following." },
-                { title: "Video Editing", icon: Video, description: "We produce high-quality videos that tell your brand's story effectively. From promotional clips to explainer videos, our editing services enhance your visual content, making it more compelling and shareable." }
+                { title: "Video Editing", icon: Video, description: "We produce high-quality videos that tell your brand&apos;s story effectively. From promotional clips to explainer videos, our editing services enhance your visual content, making it more compelling and shareable." }
               ].map((service, index) => (
                 <motion.div
                   key={service.title}
@@ -388,7 +418,7 @@ export default function Portfolio() {
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { name: "Sarah Thompson", content: "Social Studioz transformed our startup's online presence! Their team delivered a stunning website that truly reflects our brand. The social media management strategies they implemented have significantly boosted our engagement. Highly recommend!" },
+                { name: "Sarah Thompson", content: "Social Studioz transformed our startup&apos;s online presence! Their team delivered a stunning website that truly reflects our brand. The social media management strategies they implemented have significantly boosted our engagement. Highly recommend!" },
                 { name: "Michael Johnson", content: "I was impressed with the video editing services from Social Studioz. They took our raw footage and turned it into a professional promotional video that perfectly captures our vision. Their attention to detail is unmatched!" },
                 { name: "Emma Carter", content: "The comprehensive package from Social Studioz exceeded our expectations! The custom website, combined with effective social media strategies, helped us reach our target audience more effectively. Their support throughout the process was invaluable." }
               ].map((testimonial, index) => (
@@ -470,14 +500,14 @@ export default function Portfolio() {
               <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
                 <Input
                   type="text"
-                  name="name"
+                  name="from_name"
                   placeholder="Your Name"
                   className={`${isDarkMode ? 'bg-blue-900 bg-opacity-20 text-white' : 'bg-white text-gray-800'} placeholder-gray-400 border-none`}
                   required
                 />
                 <Input
                   type="email"
-                  name="email"
+                  name="from_email"
                   placeholder="Your Email"
                   className={`${isDarkMode ? 'bg-blue-900 bg-opacity-20 text-white' : 'bg-white text-gray-800'}  placeholder-gray-400 border-none`}
                   required
@@ -513,13 +543,13 @@ export default function Portfolio() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-2xl font-bold mb-4 md:mb-0">Social Studioz</div>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-blue-500 transition-colors">
+              <a href="https://www.instagram.com/socialstudioz1/profilecard/?igsh=bDJlOHBpcmZ5bGs2" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">
                 <Instagram />
               </a>
-              <a href="#" className="hover:text-blue-500 transition-colors">
+              <a href="https://x.com/SocialStudioz?t=Ow7qukgnVw-S8HiYFujhaQ&s=09" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">
                 <Twitter />
               </a>
-              <a href="#" className="hover:text-blue-500 transition-colors">
+              <a href="https://in.linkedin.com/in/social-studioz-143b43302" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">
                 <Linkedin />
               </a>
             </div>
@@ -530,7 +560,6 @@ export default function Portfolio() {
         </div>
       </footer>
 
-      {/* Marquee effect */}
       <div className={`fixed bottom-0 left-0 right-0 py-2 ${isDarkMode ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-100'} z-40 overflow-hidden`}>
         <div className="marquee-content whitespace-nowrap">
           <span className="mx-4">Follow us on this site to stay updated!</span>
